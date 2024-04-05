@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .invoice-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .invoice-header img {
+            max-width: 150px;
+            margin-right: 20px;
+        }
+        .logo {
+            max-width: 100px; /* Adjust as needed */
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-header">
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg9F_57u-SP33zjHSNAmiKvqxc8FGflcLszmWwbnECBljz9Ywp2L3FBwH5OGhkoDClQbKoChrBgdb-WxPxZLjg7y0oFoBsFC_Fb07QCwynxz2VZbpQbSpK7BXmcedaPlvlhJBjDtVU5jvi4QgML3puckgqhXe6RIiYGs7amHkXy4LOj5tVrdTmCuTyL_v0/s507/ei_1700927015411-removebg-preview.png" alt="Logo" class="logo">
+        <h1>Bhagwati Guest House</h1>
+    </div>
+    <form id="invoiceForm" onsubmit="generateInvoice()">
+        <label for="customerName">Customer Name:</label>
+        <input type="text" id="customerName" name="customerName" required><br><br>
+        <label for="mobileNumber">Mobile Number:</label>
+        <input type="text" id="mobileNumber" name="mobileNumber" required><br><br>
+        <table id="itemsTable">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Price (NPR)</th>
+                    <th>Total (NPR)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" name="itemName[]" required></td>
+                    <td><input type="number" name="itemQuantity[]" required></td>
+                    <td><input type="number" name="itemPrice[]" required></td>
+                    <td></td>
+                    <td><button type="button" onclick="removeItemRow(this)">Remove</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <br>
+        <button type="button" onclick="addItemRow()">Add Item</button>
+        <br><br>
+        <button type="submit">Generate Invoice</button>
+    </form>
+
+    <script>
+        function addItemRow() {
+            var table = document.getElementById("itemsTable").getElementsByTagName('tbody')[0];
+            var newRow = table.insertRow();
+            newRow.innerHTML = `
+                <td><input type="text" name="itemName[]" required></td>
+                <td><input type="number" name="itemQuantity[]" required></td>
+                <td><input type="number" name="itemPrice[]" required></td>
+                <td></td>
+                <td><button type="button" onclick="removeItemRow(this)">Remove</button></td>`;
+        }
+
+        function removeItemRow(button) {
+            var row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+
+        function generateInvoice() {
+            var formData = new FormData(document.getElementById("invoiceForm"));
+            var items = [];
+            formData.getAll("itemName[]").forEach(function(itemName, index) {
+                items.push({
+                    name: itemName,
+                    quantity: parseInt(formData.getAll("itemQuantity[]")[index]),
+                    price: parseFloat(formData.getAll("itemPrice[]")[index])
+                });
+            });
+
+            var total = 0;
+            var invoiceHTML = `
+                <div class="invoice-header">
+                    <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg9F_57u-SP33zjHSNAmiKvqxc8FGflcLszmWwbnECBljz9Ywp2L3FBwH5OGhkoDClQbKoChrBgdb-WxPxZLjg7y0oFoBsFC_Fb07QCwynxz2VZbpQbSpK7BXmcedaPlvlhJBjDtVU5jvi4QgML3puckgqhXe6RIiYGs7amHkXy4LOj5tVrdTmCuTyL_v0/s507/ei_1700927015411-removebg-preview.png" alt="Logo" class="logo" style="max-width: 100px;">
+                    <h1>Bhagwati Guest House</h1>
+                </div>
+                <p><strong>Customer Name:</strong> ${formData.get("customerName")}</p>
+                <p><strong>Mobile Number:</strong> ${formData.get("mobileNumber")}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Price (NPR)</th>
+                            <th>Total (NPR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            items.forEach(function(item) {
+                var itemTotal = item.quantity * item.price;
+                total += itemTotal;
+                invoiceHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.quantity}</td>
+                        <td>${item.price.toFixed(2)}</td>
+                        <td>${itemTotal.toFixed(2)}</td>
+                    </tr>`;
+            });
+            invoiceHTML += `
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3">Total:</td>
+                            <td>${total.toFixed(2)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <button onclick="window.print()">Print</button>`;
+
+            var invoiceWindow = window.open("", "_blank");
+            invoiceWindow.document.write(invoiceHTML);
+            invoiceWindow.document.close();
+            return false; // Prevent form submission
+        }
+    </script>
+</body>
+</html>
